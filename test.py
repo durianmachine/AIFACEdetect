@@ -37,7 +37,7 @@ print('Using: ' + dev + ' compute') #Prints out computing device for MTCNN
 mtcnn0 = MTCNN(image_size=240, keep_all=False, min_face_size=35, device =dev) # initializing the network while keeping keep_all = False
 mtcnn1 = MTCNN(image_size=240, keep_all=True, min_face_size=35, device =dev) # initializing the network while keeping keep_all = True
 resnet = InceptionResnetV1(pretrained='vggface2').eval() 
-
+print('processing...')
 #reading files
 dataset = datasets.ImageFolder('photos') # photos folder path 
 idx_to_class = {i:c for c,i in dataset.class_to_idx.items()} #name of ppl from folder name
