@@ -1,3 +1,5 @@
+Thank you for downloading the deep learning attendance system. The software and code comes with no warranty and the developer(s) will not be responsible for any damage caused by running or downloading the program. Use at your own risk.
+
 # AIFACEdetect
 Dependencies: 
 -PyTorch
