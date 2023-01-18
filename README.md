@@ -1,5 +1,11 @@
 Thank you for downloading the deep learning attendance system. The software and code comes with no warranty and the developer(s) will not be responsible for any damage caused by running or downloading the program. Use at your own risk.
 
+Update notes:
+-Added module that detects avaliable computing devices.
+  -MPS is not yet support by PyTorch but the code is written out.
+  -The program will prioritize CUDA then MPS, then others.
+  -MPS is not yet supported by TorchVision but in the case it is detected, it will ask for other computing devices such as CPU.
+
 # AIFACEdetect
 Dependencies: 
 -PyTorch
