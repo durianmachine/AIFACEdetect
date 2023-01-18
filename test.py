@@ -36,8 +36,8 @@ print('Using: ' + dev + ' compute') #Prints out computing device for MTCNN
 
 mtcnn0 = MTCNN(image_size=240, keep_all=False, min_face_size=35, device =dev) # initializing the network while keeping keep_all = False
 mtcnn1 = MTCNN(image_size=240, keep_all=True, min_face_size=35, device =dev) # initializing the network while keeping keep_all = True
-resnet = InceptionResnetV1(pretrained='vggface2').eval() 
-print('processing...')
+resnet = InceptionResnetV1(pretrained='vggface2').eval() #pretrained face detection model from PyTorch Library
+
 #reading files
 dataset = datasets.ImageFolder('photos') # photos folder path 
 idx_to_class = {i:c for c,i in dataset.class_to_idx.items()} #name of ppl from folder name
@@ -49,7 +49,7 @@ name_list = [] #correspond names to cropped photos
 embedding_list = [] #conversion of cropped photos to matrix (vector) via pretrained facenet
 load = DataLoader(dataset, collate_fn=collate_fn)
 
-for img, idx in load:
+for img, idx in load: #Runs the face detection code if a face is detected via the vggface model
     face, prob = mtcnn0(img, return_prob=True) 
     if face is not None and prob>0.9:
         emb = resnet(face.unsqueeze(0)) 
