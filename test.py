@@ -36,8 +36,8 @@ print('Using: ' + dev + ' compute') #Prints out computing device for MTCNN
 
 mtcnn0 = MTCNN(image_size=240, keep_all=False, min_face_size=35, device =dev) # initializing the network while keeping keep_all = False
 mtcnn1 = MTCNN(image_size=240, keep_all=True, min_face_size=35, device =dev) # initializing the network while keeping keep_all = True
-resnet = InceptionResnetV1(pretrained='vggface2').eval() #pretrained face detection model from PyTorch Library
-
+resnet = InceptionResnetV1(pretrained='vggface2').eval() 
+print('processing...')
 #reading files
 dataset = datasets.ImageFolder('photos') # photos folder path 
 idx_to_class = {i:c for c,i in dataset.class_to_idx.items()} #name of ppl from folder name
@@ -49,7 +49,7 @@ name_list = [] #correspond names to cropped photos
 embedding_list = [] #conversion of cropped photos to matrix (vector) via pretrained facenet
 load = DataLoader(dataset, collate_fn=collate_fn)
 
-for img, idx in load: #Runs the face detection code if a face is detected via the vggface model
+for img, idx in load:
     face, prob = mtcnn0(img, return_prob=True) 
     if face is not None and prob>0.9:
         emb = resnet(face.unsqueeze(0)) 
@@ -82,19 +82,15 @@ while True:
         break
         
     img = Image.fromarray(frame)
-    img_cropped_list, prob_list = mtcnn1(img, return_prob=True) 
+    prob_list = mtcnn1(img, return_prob=True) 
     
-    if img_cropped_list is not None:
+    if prob_list is not None:
         boxes, _ = mtcnn1.detect(img)
                 
         for i, prob in enumerate(prob_list):
             if prob>0.90:
-                emb = resnet(img_cropped_list[i].unsqueeze(0)).detach() 
+                emb = resnet(prob_list[i].unsqueeze(0)).detach() 
                 dist_list = [] # list of matched distances, minimum distance is used to identify the person
-
-                for idx, emb_db in enumerate(embedding_list):
-                    dist = torch.dist(emb, emb_db).item()
-                    dist_list.append(dist)
 
                 min_dist = min(dist_list) # get minumum dist value
                 min_dist_idx = dist_list.index(min_dist) # get minumum dist index
