@@ -24,7 +24,7 @@ else: #if metal and cuda false, pick device.
  deviceselect = input('No dedicated computing. Select device to be used (cpu, cuda, mps, etc): ').lower()
  dev = deviceselect
 
-#temporary cause TorchVision does not support MPS compute
+#temporary cause TorchVision does not support MPS compute. Assumes macs don't have CUDA compute
 if torch.backends.mps.is_available() == True:
  dev = input('MPS is currently unsupported. Select device to be used (cpu, cuda, etc): ').lower()
 
@@ -32,8 +32,8 @@ time.sleep(0.3)
 print('Using: ' + dev + ' compute') #Prints out computing device for MTCNN
 
 
-mtcnn0 = MTCNN(image_size=240, keep_all=False, min_face_size=35, device =dev) # initializing the network while keeping keep_all = False
-mtcnn1 = MTCNN(image_size=240, keep_all=True, min_face_size=35, device =dev) # initializing the network while keeping keep_all = True
+mtcnn0 = MTCNN(image_size=240, keep_all=False, min_face_size=45, device =dev) # initializing the network while keeping keep_all = False
+mtcnn1 = MTCNN(image_size=240, keep_all=True, min_face_size=45, device =dev) # initializing the network while keeping keep_all = True
 resnet = InceptionResnetV1(pretrained='vggface2').eval() 
 
 #reading files
@@ -70,7 +70,9 @@ def logs():
 
 while True:
     grep, frame = cap.read()
+
     if not grep:
+        print("can not grab frame")
         break
 
     img = Image.fromarray(frame)
@@ -78,21 +80,28 @@ while True:
 
     if img_cropped_list is not None:
         boxes, _ = mtcnn1.detect(img)
-        for y, prob in enumerate(prob_list):
+
+        for i, prob in enumerate(prob_list):
             if prob>0.90:
                 emb = resnet(img_cropped_list[i].unsqueeze(0)).detach() 
                 dist_list = [] #list of matched distances, minimum distance is used to identify the person
+
                 for idx, emb_db in enumerate(embedding_list):
                     dist = torch.dist(emb, emb_db).item()
                     dist_list.append(dist)
+
                 min_dist = min(dist_list) #min detect value
                 min_dist_idx = dist_list.index(min_dist) #index names
                 name = name_list[min_dist_idx] #correspond the name to index file
-                box = boxes[y] 
+
+                box = boxes[i] 
+
                 if min_dist<0.90: #If acccuracy mets a threshold, it displays as a name
                     frame = cv2.putText(frame, name+' '+str(int(round(min_dist*100, 1)))+"%", (int(box[0]),int(box[1])), cv2.FONT_HERSHEY_DUPLEX, 1, (100,100,255),2, cv2.LINE_AA)
                     logs()
-                   
+
+                frame = cv2.rectangle(frame, (int(box[0]),int(box[1])) , (int(box[2]),int(box[3])), (255,225,255), 4)
+
     if dev == 'cuda:0':
         devprint = 'NVIDIA COMPUTE' #Computing device string
     elif dev == 'mps:0':
@@ -100,8 +109,10 @@ while True:
     else:
         devprint = "CPU COMPUTE"
 
-    if 12 > int(time.strftime("%H", time.localtime())) > 0: message = 'Good Afternoon'
-    else: message = 'Good Evening'
+    ctime = int(time.strftime("%H", time.localtime()))
+    if ctime < 12 and ctime > 0:
+        message = 'Good Morning: ' + time.strftime("%H:%M", time.localtime())
+    else: message = 'Good Evening: ' + time.strftime("%H:%M", time.localtime())
 
     #shows sign, fps, computing device via devprint
     currentdev = cv2.putText(frame, (devprint + ' FPS:' + str(cap_fps)), (25,25), cv2.FONT_HERSHEY_DUPLEX, 1, (0,0,0),1, cv2.LINE_AA)
